@@ -12,20 +12,19 @@ def calculate_subtree_value(node):
     
     while stack:
         curr = stack.pop()
-        if curr in color:  # 색깔이 존재하는 노드만 처리
-            unique_colors.add(color[curr])
+        unique_colors.add(color[curr])
         for child in tree[curr]:
             stack.append(child)
     
     return len(unique_colors)
 
 # DFS로 트리의 깊이를 계산하는 함수
-def get_depth(node, curr_depth):
-    if not tree[node]:  # 리프 노드일 때
-        return curr_depth
+def get_depth(node):
+    if node not in tree or not tree[node]:  # 리프 노드일 때
+        return 0
     max_child_depth = 0
     for child in tree[node]:
-        max_child_depth = max(max_child_depth, get_depth(child, curr_depth + 1))
+        max_child_depth = max(max_child_depth, get_depth(child) + 1)
     return max_child_depth
 
 # 명령을 처리
@@ -44,37 +43,35 @@ for _ in range(q):
             max_depth[m_id] = max_d
         else:
             # 부모가 있는 경우
-            if p_id in tree and get_depth(p_id, 1) < max_depth[p_id]:
-                # 부모의 최대 깊이를 넘지 않으면 추가
-                tree[p_id].append(m_id)
-                tree[m_id] = []
-                color[m_id] = color_value
-                max_depth[m_id] = max_d
-            else:
-                # 부모가 없거나 최대 깊이를 초과하는 경우 무시
-                continue
+            if p_id in tree:
+                current_depth = get_depth(p_id)  # 현재 깊이 계산
+                if current_depth < max_depth[p_id]:
+                    # 부모의 최대 깊이를 넘지 않으면 추가
+                    tree[p_id].append(m_id)
+                    tree[m_id] = []
+                    color[m_id] = color_value
+                    max_depth[m_id] = max_d
 
     elif command[0] == 200:
         # 색깔 변경: 200 m_id color
         m_id, new_color = command[1], command[2]
         
         # 서브트리의 모든 노드의 색상을 변경
-        if m_id in tree or m_id in color:  # m_id가 유효한 노드인지 확인
+        if m_id in color:  # m_id가 유효한 노드인지 확인
             stack = [m_id]
             while stack:
                 curr = stack.pop()
-                if curr in color:  # 색깔이 존재하는 노드만 처리
-                    color[curr] = new_color
+                color[curr] = new_color
                 for child in tree[curr]:
                     stack.append(child)
     
     elif command[0] == 300:
         # 색깔 조회: 300 m_id
         m_id = command[1]
-        if m_id in color:  # m_id가 존재하는 경우에만 출력
+        if m_id in color:  # 해당 노드의 색깔이 있는 경우에만 출력
             print(color[m_id])
         else:
-            print("Node not found")  # 노드가 없을 경우
+            print("Node not found")  # 색깔이 없는 경우
 
     elif command[0] == 400:
         # 점수 조회: 400
